@@ -19,26 +19,29 @@ passport.deserializeUser((id,done)=>{
 })
 
 
+//using promises by async await syntex
 passport.use(
     new GoogleStrategy({
         clientID: keys.googleClientId,
         clientSecret: keys.googleClientSecret,
         callbackURL: '/auth/google/callback',
         proxy : true
-    }, (accessToken, refreshToken, profile, done)=>{
-        User.findOne({googleID : profile.id})
-            .then(existingUser =>{
+    },
+    async (accessToken, refreshToken, profile, done) =>{
+       const existingUser = await User.findOne({googleID : profile.id}) 
                 if(existingUser){
                     //we found existing user
-                    done(null,existingUser)
-                }else{
-                    new User({
+                return    done(null,existingUser)
+                }
+               
+                  const user = await  new User({
                         googleID: profile.id,
                         name: profile.displayName
                     }).save()
-                        .then(user => done(null,user));
-                }
-            })
+                     done(null,user)
+                
+            }
+        )
         
-    })
 )
+
